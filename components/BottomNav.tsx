@@ -11,7 +11,6 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentView, onNavigate })
   const navItems = [
     { view: ViewState.HOME, label: 'Home', icon: Home },
     { view: ViewState.BOOKING, label: 'Book', icon: Calendar },
-    { view: ViewState.AI_CHAT, label: 'Assistant', icon: MessageSquare },
     { view: ViewState.APPOINTMENTS, label: 'My Appts', icon: User },
     { view: ViewState.CONTACT, label: 'Contact', icon: Phone },
   ];
