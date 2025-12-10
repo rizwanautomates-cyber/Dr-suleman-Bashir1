@@ -1,0 +1,5 @@
+{
+  "name": "BashirCare",
+  "description": "Official appointment booking and patient companion app for Dr. Suleman Bashir. Features booking management, clinic navigation, and AI health assistance.",
+  "requestFramePermissions": []
+}
