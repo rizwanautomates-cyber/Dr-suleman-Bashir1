@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Appointment, ViewState } from '../types';
-import { getAppointments, cancelAppointment } from '../services/storageService';
+import { getAppointments, cancelAppointment, rescheduleAppointment } from '../services/storageService';
+import { TIME_SLOTS } from '../constants';
 import { Button } from '../components/Button';
-import { Calendar, Clock, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, AlertCircle, X, Check } from 'lucide-react';
 
 interface Props {
     onNavigate: (view: ViewState) => void;
@@ -10,14 +11,30 @@ interface Props {
 
 export const MyAppointmentsView: React.FC<Props> = ({ onNavigate }) => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  
+  // Reschedule State
+  const [isRescheduling, setIsRescheduling] = useState<string | null>(null);
+  const [newDate, setNewDate] = useState<string>('');
+  const [newSlot, setNewSlot] = useState<string>('');
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
 
   useEffect(() => {
     loadData();
   }, []);
 
+  // Update available slots when date changes during rescheduling
+  useEffect(() => {
+    if (newDate && isRescheduling) {
+      const allAppts = getAppointments();
+      const taken = allAppts
+        .filter(a => a.date === newDate && a.status !== 'cancelled' && a.id !== isRescheduling)
+        .map(a => a.timeSlot);
+      setBookedSlots(taken);
+      setNewSlot(''); // Reset slot selection when date changes
+    }
+  }, [newDate, isRescheduling]);
+
   const loadData = () => {
-    // In a real app, this would filter by the logged-in user ID
-    // For demo, we show all "Active" local appointments
     const all = getAppointments();
     setAppointments(all.sort((a, b) => b.createdAt - a.createdAt));
   };
@@ -29,8 +46,24 @@ export const MyAppointmentsView: React.FC<Props> = ({ onNavigate }) => {
     }
   };
 
+  const startReschedule = (appt: Appointment) => {
+    setIsRescheduling(appt.id);
+    setNewDate(appt.date);
+    setNewSlot(appt.timeSlot);
+  };
+
+  const confirmReschedule = () => {
+    if (isRescheduling && newDate && newSlot) {
+        rescheduleAppointment(isRescheduling, newDate, newSlot);
+        setIsRescheduling(null);
+        setNewDate('');
+        setNewSlot('');
+        loadData();
+    }
+  };
+
   return (
-    <div className="pb-24 pt-6 px-4 max-w-md mx-auto min-h-screen bg-slate-50">
+    <div className="pb-24 pt-6 px-4 max-w-md mx-auto min-h-screen bg-slate-50 relative">
       <h2 className="text-2xl font-bold text-slate-900 mb-6">My Appointments</h2>
 
       {appointments.length === 0 ? (
@@ -79,7 +112,7 @@ export const MyAppointmentsView: React.FC<Props> = ({ onNavigate }) => {
                     <Button 
                         variant="secondary" 
                         className="flex-1 text-sm py-2"
-                        onClick={() => alert("Reschedule feature requires calling the clinic in this demo.")}
+                        onClick={() => startReschedule(appt)}
                     >
                         Reschedule
                     </Button>
@@ -93,6 +126,81 @@ export const MyAppointmentsView: React.FC<Props> = ({ onNavigate }) => {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Reschedule Modal Overlay */}
+      {isRescheduling && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-300">
+                <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                    <h3 className="font-bold text-lg text-slate-800">Reschedule Appointment</h3>
+                    <button 
+                        onClick={() => setIsRescheduling(null)}
+                        className="p-1 rounded-full hover:bg-slate-200 text-slate-500"
+                    >
+                        <X size={20} />
+                    </button>
+                </div>
+                
+                <div className="p-4 space-y-4 max-h-[70vh] overflow-y-auto">
+                    {/* Date Picker */}
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-slate-700">Select New Date</label>
+                        <input 
+                            type="date" 
+                            value={newDate}
+                            min={new Date().toISOString().split('T')[0]}
+                            onChange={(e) => setNewDate(e.target.value)}
+                            className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary-500 outline-none"
+                        />
+                    </div>
+
+                    {/* Time Slots */}
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-slate-700">Select New Time</label>
+                        <div className="grid grid-cols-3 gap-2">
+                        {TIME_SLOTS.map(slot => {
+                            const isTaken = bookedSlots.includes(slot);
+                            const isSelected = newSlot === slot;
+                            
+                            return (
+                            <button
+                                key={slot}
+                                disabled={isTaken}
+                                onClick={() => setNewSlot(slot)}
+                                className={`
+                                py-2 px-1 rounded-lg text-xs font-medium transition-all
+                                ${isTaken ? 'bg-slate-100 text-slate-300 cursor-not-allowed' : ''}
+                                ${isSelected ? 'bg-primary-600 text-white shadow-md' : 'bg-white border border-slate-200 text-slate-600'}
+                                ${!isTaken && !isSelected ? 'hover:border-primary-400' : ''}
+                                `}
+                            >
+                                {slot}
+                            </button>
+                            );
+                        })}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="p-4 border-t border-slate-100 bg-slate-50 flex gap-3">
+                    <Button 
+                        variant="secondary" 
+                        fullWidth 
+                        onClick={() => setIsRescheduling(null)}
+                    >
+                        Cancel
+                    </Button>
+                    <Button 
+                        fullWidth 
+                        disabled={!newDate || !newSlot}
+                        onClick={confirmReschedule}
+                    >
+                        Confirm
+                    </Button>
+                </div>
+            </div>
         </div>
       )}
     </div>

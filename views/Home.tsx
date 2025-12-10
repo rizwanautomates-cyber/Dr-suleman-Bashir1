@@ -2,7 +2,7 @@ import React from 'react';
 import { DOCTOR_DATA } from '../constants';
 import { ViewState } from '../types';
 import { Button } from '../components/Button';
-import { MapPin, Clock, Star, ShieldCheck, ChevronRight } from 'lucide-react';
+import { MapPin, Clock, Star, ShieldCheck, ChevronRight, Stethoscope } from 'lucide-react';
 
 interface HomeProps {
   onNavigate: (view: ViewState) => void;
@@ -22,14 +22,29 @@ export const HomeView: React.FC<HomeProps> = ({ onNavigate }) => {
         </div>
       </div>
 
+      {/* Introduction Card */}
+      <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+        <div className="flex items-start gap-3">
+            <div className="bg-primary-50 p-2 rounded-lg text-primary-600 shrink-0 mt-1">
+                <Stethoscope size={20} />
+            </div>
+            <div>
+                <h3 className="font-bold text-slate-900 text-sm mb-1">About the Doctor</h3>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                    Dedicated Consultant Medical Specialist with extensive experience in internal medicine, committed to providing compassionate, high-quality patient care at Ikram Hospital.
+                </p>
+            </div>
+        </div>
+      </div>
+
       {/* Stats/Quick Info */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center text-center gap-1">
           <div className="bg-green-100 p-2 rounded-full text-green-600">
             <ShieldCheck size={20} />
           </div>
-          <span className="font-bold text-slate-800 text-sm">FCPS Med.</span>
-          <span className="text-xs text-slate-500">Gold Medalist</span>
+          <span className="font-bold text-slate-800 text-sm">MBBS, FCPS</span>
+          <span className="text-xs text-slate-500">Certified Specialist</span>
         </div>
         <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center text-center gap-1">
           <div className="bg-amber-100 p-2 rounded-full text-amber-600">

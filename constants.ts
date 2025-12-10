@@ -11,12 +11,20 @@ export const DOCTOR_DATA: DoctorDetails = {
   timings: "Mon - Sat: 9:00 AM - 9:00 PM"
 };
 
-export const TIME_SLOTS = [
-  "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-  "12:00", "12:30", "13:00", "13:30", "14:00", "14:30",
-  "15:00", "15:30", "16:00", "16:30", "17:00", "17:30",
-  "18:00", "18:30", "19:00", "19:30", "20:00", "20:30"
-];
+// Generate 15-minute intervals from 9:00 AM to 8:45 PM
+const generateTimeSlots = () => {
+  const slots = [];
+  for (let hour = 9; hour < 21; hour++) {
+    for (let minute = 0; minute < 60; minute += 15) {
+      const h = hour < 10 ? `0${hour}` : hour;
+      const m = minute === 0 ? '00' : minute;
+      slots.push(`${h}:${m}`);
+    }
+  }
+  return slots;
+};
+
+export const TIME_SLOTS = generateTimeSlots();
 
 // In a real app, this would be generated dynamicallly
 export const APP_DOWNLOAD_QR = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://bashircare-demo.com";

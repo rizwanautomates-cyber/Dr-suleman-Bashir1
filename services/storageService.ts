@@ -27,6 +27,15 @@ export const updateAppointmentStatus = (id: string, status: Appointment['status'
   return updated;
 };
 
+export const rescheduleAppointment = (id: string, newDate: string, newTimeSlot: string): Appointment[] => {
+  const current = getAppointments();
+  const updated = current.map(appt => 
+    appt.id === id ? { ...appt, date: newDate, timeSlot: newTimeSlot, status: 'confirmed' as const } : appt
+  );
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  return updated;
+};
+
 export const cancelAppointment = (id: string): Appointment[] => {
   return updateAppointmentStatus(id, 'cancelled');
 };
